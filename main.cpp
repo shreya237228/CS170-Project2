@@ -29,7 +29,7 @@ void forwardSelection(int numFeatures)
     for (int i = 1; i <= numFeatures; i++) 
     {
         set<int> curr = features; // curr best for this search
-        double bestAccuracyThisStep = 0.0;
+        double this_accuracy = 0.0;
 
         for (int j = 1; j <= numFeatures; j++) 
         {
@@ -38,18 +38,18 @@ void forwardSelection(int numFeatures)
             if (features.find(j) == features.end()) 
             {
 
-                set<int> tempFeatures = features;
-                tempFeatures.insert(j);
-                double currAccuracy = evaluate(tempFeatures);
+                set<int> temp_features = features;
+                temp_features.insert(j);
+                double curr_accuracy = evaluate(temp_features);
                 cout << "Using feature(s) ";
 
-                for (int f : tempFeatures) cout << f << " ";
-                    cout << "| Accuracy is " << currAccuracy << "%" << endl;
+                for (int f : temp_features) cout << f << " ";
+                    cout << "| Accuracy is " << curr_accuracy << "%" << endl;
 
-                    if (currAccuracy > bestAccuracyThisStep) // greedy search finding the best accuracy
+                    if (curr_accuracy > this_accuracy) // greedy search finding the best accuracy
                     {
-                        bestAccuracyThisStep = currAccuracy;
-                        curr = tempFeatures;
+                        this_accuracy = curr_accuracy;
+                        curr = temp_features;
                     }
             }
         }
@@ -57,9 +57,9 @@ void forwardSelection(int numFeatures)
         features = curr; // select the features 
 
     // if better then all then change otherwise give a wanring
-        if (bestAccuracyThisStep > best_accuracy) 
+        if (this_accuracy > best_accuracy) 
         {
-            best_accuracy = bestAccuracyThisStep;
+            best_accuracy = this_accuracy;
             best_features = features;
         } 
         else 
@@ -70,7 +70,7 @@ void forwardSelection(int numFeatures)
     // trace 
         cout << "Feature set ";
         for (int f : features) cout << f << " ";
-            cout << "was best, accuracy is " << bestAccuracyThisStep << "%" << endl;
+            cout << "was best, accuracy is " << this_accuracy << "%" << endl;
     }
 
     // cout final output
