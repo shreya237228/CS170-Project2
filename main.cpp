@@ -16,7 +16,7 @@ double evaluate(const set<int>& features) {         // Dummy evaluation function
 
 void forwardSelection(int numFeatures)
 {
-    cout << "== Forward Selection Algorithm ==" << endl; 
+    cout << "=== Forward Selection Algorithm ===" << endl; 
 
     set<int> features; // empty set where we will select features and fill
     set<int> best_features; // store the best features 
@@ -25,25 +25,26 @@ void forwardSelection(int numFeatures)
     cout << "Using no features and “random” evaluation, I get an accuracy of " 
          << fixed << setprecision(2) << best_accuracy << "%\n" << endl;
 
-    cout << "Beginning search." << endl;
-    for (int i = 1; i <= numFeatures; i++) {
+    cout << "== Beginning search ==" << endl;
+    for (int i = 1; i <= numFeatures; i++) 
+    {
         set<int> curr = features; // curr best for this search
         double bestAccuracyThisStep = 0.0;
 
         for (int j = 1; j <= numFeatures; j++) 
         {
             if (features.find(j) != features.end()) continue; 
+
             if (features.find(j) == features.end()) 
             {
 
                 set<int> tempFeatures = features;
                 tempFeatures.insert(j);
-
                 double currAccuracy = evaluate(tempFeatures);
                 cout << "Using feature(s) ";
 
                 for (int f : tempFeatures) cout << f << " ";
-                    cout << "accuracy is " << currAccuracy << "%" << endl;
+                    cout << "| Accuracy is " << currAccuracy << "%" << endl;
 
                     if (currAccuracy > bestAccuracyThisStep) // greedy search finding the best accuracy
                     {
@@ -55,32 +56,31 @@ void forwardSelection(int numFeatures)
 
         features = curr; // select the features 
 
-// if better then all then change otherwise give a wanring
+    // if better then all then change otherwise give a wanring
         if (bestAccuracyThisStep > best_accuracy) 
         {
             best_accuracy = bestAccuracyThisStep;
             best_features = features;
-
-// trace 
         } 
         else 
         {
             cout << "(Warning: Accuracy decreased!)" << endl;
         }
 
-        
+    // trace 
         cout << "Feature set ";
         for (int f : features) cout << f << " ";
             cout << "was best, accuracy is " << bestAccuracyThisStep << "%" << endl;
     }
-// cout final output
 
-if (best_accuracy > 0.0)
-{
-    cout << "Finished search!! The best feature subset is {";
-    for (int f : best_features) cout << f << " ";
-    cout << "}, which has an accuracy of " << best_accuracy << "%" << endl;
-}
+    // cout final output
+    cout << "=== Search Completed ===" << endl;
+    if (best_accuracy > 0.0)
+    {
+        cout << "Finished search!! The best feature subset is {";
+        for (int f : best_features) cout << f << " ";
+        cout << "}, which has an accuracy of " << best_accuracy << "%" << endl;
+    }
 }
 
 void backwardSelection(int numFeatures){
