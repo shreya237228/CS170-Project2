@@ -5,6 +5,13 @@
 #include <cstdlib> 
 #include <ctime>  
 #include <iomanip>
+#include <cmath>
+#include <vector>
+#include <limits>
+#include <fstream>
+#include <sstream>
+#include <stdexcept>
+
 
 using namespace std;
 
@@ -142,9 +149,97 @@ void specialSelection(int numFeatures){
     cout<<"not implemented yet"<<endl; 
 }
 
+
+class Classifier {
+private:
+    vector<vector<double>> trainingData;
+    vector<int> classLabels;
+    int euclideanDistance(const vector<double>& point1, const vector<double>& point2, const vector<int>& featureSubset) {
+        double distance=0.0;
+        for (int feature:featureSubset){
+            distance=distance+pow(point1[feature]-point2[feature], 2);
+        }
+        return sqrt(distance);
+    }
+
+public:
+    void Train(const vector<vector<double>>& data, const vector<int>& labels) {
+        trainingData=data;
+        classLabels=labels;
+    }
+
+    int Test(const vector<double>& testVal, const vector<int>& featureSubset) {
+        int nearestNeighbor = -1;
+        double shortestDistance=numeric_limits<double>::infinity();
+        for (size_t i=0; i < trainingData.size(); ++i) {
+            double distance=euclideanDistance(trainingData[i], testVal, featureSubset);
+            if (distance<shortestDistance) {
+                shortestDistance=distance;
+                nearestNeighbor=i;
+            }
+        }
+        return classLabels[nearestNeighbor];
+    }
+};
+
+class Validator {
+public:
+    double leaveOneOutValidator(const vector<vector<double>>& data, const vector<int>& classLabels, const vector<int>& featureSubset){
+        size_t numValues
+=data.size();
+        Classifier classifier;
+        int correct=0;
+        for(size_t i=0; i<numValues
+; ++i) {
+            vector<vector<double>> trainingData;
+            vector<int> trainingLabels;
+            for (size_t j=0; j<numValues
+    ;++j) {
+                if (j!=i) {
+                    trainingData.push_back(data[j]);
+                    trainingLabels.push_back(classLabels[j]);
+                }
+            }
+            classifier.Train(trainingData, trainingLabels);
+            int predictedLabel=classifier.Test(data[i], featureSubset);      // Test the classifier on the left-out instance
+            if (predictedLabel==classLabels[i]) {
+                correct=correct+1;
+            }
+        }
+        double accuracy= (static_cast<double>(correct)/numValues
+) * 100.0;
+        return accuracy;
+    }
+};
+
+vector<vector<double>> normalize(vector<vector<double>>& data, int numFeatures, int numValues){
+    vector<double> mean(numFeatures, 0.0);
+    vector<double> stdDev(numFeatures, 0.0);
+    for (int j=1; j<numFeatures; ++j) {
+        for (int i=0; i<numValues; ++i) {
+            mean[j-1]=mean[j-1]+data[i][j];
+        }
+        mean[j-1]=mean[j-1]/numValues;
+    }
+    for (int j = 1; j < numFeatures; ++j) {
+        double variance=0.0;
+        for (int i=0; i<numValues; ++i) {
+            variance += pow(data[i][j]-mean[j-1], 2);
+        }
+        variance=variance/ numValues;
+        stdDev[j-1]=sqrt(variance);
+    }
+    for (int i=0; i<numValues; ++i) {
+        for (int j=1; j<=numFeatures; ++j) {
+            data[i][j]=(data[i][j]-mean[j-1])/stdDev[j-1];
+        }
+    }
+    return data;
+}
+
+
 int main() {
     cout << "Welcome to Trisha-Shreya's Feature Selection Algorithm." << endl;
-
     cout << "Please enter total number of features: " << endl;
     int numFeatures;
     cin >> numFeatures;
@@ -177,4 +272,4 @@ int main() {
     }
 
     return 0; 
-}
+};
