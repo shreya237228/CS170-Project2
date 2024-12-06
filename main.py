@@ -2,18 +2,19 @@ import random
 import math
 from typing import List
 import time
-
+from itertools import combinations
 
 def evaluate(features):
     randomAccuracy=random.randint(0, 9999)/ 100.0 
     return randomAccuracy
 
-def forwardSelection(numFeatures):
+def forwardSelection(numFeatures, data, featureSubset, totalInstances):
     print("=== Forward Selection Algorithm ===")
     features=set()  
     bestFeatures=set()  
-    bestAccuracy=evaluate(features)
-    print(f"Using no features and 'random' evaluation, I get an accuracy of {bestAccuracy:.2f}%\n")
+    featureSet=[]
+    bestAccuracy=leaveOneOut(data, featureSet, totalInstances)
+    print(f"Running nearest neighbor with no features (default rate), using “leaving-one-out” evaluation, I get an accuracy of  {bestAccuracy:.2f}%\n")
     print("== Beginning search ==")
     for i in range(1, numFeatures + 1):
         curr = features.copy()  
@@ -25,7 +26,7 @@ def forwardSelection(numFeatures):
 
             tempFeatures=features.copy()
             tempFeatures.add(j)
-            currAccuracy=evaluate(tempFeatures)
+            currAccuracy=leaveOneOut(data, tempFeatures, totalInstances)
 
             print(f"Using feature(s) {' '.join(map(str, tempFeatures))} | Accuracy is {currAccuracy:.2f}%")
 
@@ -45,13 +46,13 @@ def forwardSelection(numFeatures):
         print(f"Finished search!! The best feature subset is {{{' '.join(map(str, bestFeatures))}}}, "
               f"which has an accuracy of {bestAccuracy:.2f}%")
 
-def backwardSelection(numFeatures):
+def backwardSelection(numFeatures, data, featureSubset, totalInstances):
     print("=== Backward Elimination Search Algorithm ===")
     allFeatures = set(range(1, numFeatures + 1))
-    randAccuracy = evaluate(allFeatures)
-    print(f"Initial accuracy with all features: {randAccuracy:.2f}%\n")
+    featureSet=[]
+    bestAccuracy=leaveOneOut(data, featureSet, totalInstances)
+    print(f"Running nearest neighbor with no features (default rate), using “leaving-one-out” evaluation, I get an accuracy of  {bestAccuracy:.2f}%\n")
     print("== Beginning Search ==")
-    bestAccuracy=randAccuracy
     bestSet= allFeatures.copy() 
     while 1<len(allFeatures):  
         bestFoundAcc= 0.0
@@ -59,7 +60,7 @@ def backwardSelection(numFeatures):
         for feature in allFeatures:
             changedSet= allFeatures.copy()
             changedSet.remove(feature)  
-            accuracy= evaluate(changedSet)
+            accuracy= leaveOneOut(data, changedSet, totalInstances)
             print(f"Using features: {' '.join(map(str, changedSet))} | Accuracy is {accuracy:.2f}%")
             if accuracy>bestFoundAcc:
                 bestFoundSet=changedSet
@@ -76,9 +77,10 @@ def backwardSelection(numFeatures):
     print("=== Search Completed ===")
     print(f"Best feature subset: {{ {' '.join(map(str, bestSet))} }} | Accuracy: {bestAccuracy:.2f}%")
 
-def specialSelection(numFeatures):
-    print("not implemented yet")
+def ourAlg(data, total_features, total_instances):
+    print("=== Working on it ===")
     pass
+
 '''
 trainingData = []
 classLabels = []
@@ -113,14 +115,14 @@ def test(data, targetPoint, featureSubset, numData):
     return nnIndex
 
  
-def leaveOneOut(data, featureSubset, totalFeatures):   #leaves one feature out and predits for that feature using remaining data
+def leaveOneOut(data, featureSubset, totalInstances):   #leaves one feature out and predits for that feature using remaining data
     correctPrediction = 0.0
-    for currFeature in range(totalFeatures):
+    for currFeature in range(totalInstances):
         oneOut=currFeature
-        nn=test(data, oneOut, featureSubset, totalFeatures)
+        nn=test(data, oneOut, featureSubset, totalInstances)
         if data[nn][0] == data[oneOut][0]:
             correctPrediction=correctPrediction + 1
-    return (correctPrediction/totalFeatures) * 100
+    return (correctPrediction/totalInstances) * 100
 
 
 def normalize_data(dataset, numFeatures, numInstances): #need to find mean and std
@@ -138,9 +140,13 @@ def normalize_data(dataset, numFeatures, numInstances): #need to find mean and s
     return dataset
 
 
+def ourAlg(normalizedData, numFeatures, num_instances):
+    print("Working")
+    pass
+
 def main():
     print("Welcome to Trisha-Shreya's Feature Selection Algorithm.")
-
+    '''
     smallDataset="small-test-dataset.txt"
     largeDataset="large-test-dataset.txt"
     #small file
@@ -177,23 +183,43 @@ def main():
         timeTaken= endTime- startTime
         print(f"Accuracy for large dataset with features {large_featureSubset}: {large_accuracy:.2f}%")
         print(f"Time taken: {timeTaken:.6f} seconds")
+'''
 
-    numFeatures = int(input("Please enter total number of features: "))
+    fileName= (input("Type in the name of the file to test: "))
+    
     print("Type the number of the algorithm you want to run.")
     print("1. Forward Selection")
     print("2. Backward Selection")
     print("3. Our Special Algorithm")
     algType = int(input("Enter your choice: "))
 
-    if algType == 1:
-        forwardSelection(numFeatures)
-    elif algType == 2:
-        backwardSelection(numFeatures)
-    elif algType == 3:
-        specialSelection(numFeatures)
-    else:
-        print("Invalid Entry")
+    with open(fileName, 'r') as fileData:
+        first_line = fileData.readline()
+        numFeatures = len(first_line.split())-1
+        fileData.seek(0)
+        num_instances=sum(1 for _ in fileData)
+        fileData.seek(0)
+        file_instances=[[float(value) for value in line.split()] for line in fileData]
+        print(f"This dataset has {numFeatures} features (not including the class attribute), with {num_instances} instances.")
+        print("==== Please wait while I normalize the data... Done! ====")
+        normalizedData= normalize_data(file_instances,  numFeatures, num_instances)
+
+        featureSubset=[]
+        for i in range(1, numFeatures + 1):
+            featureSubset.append(i)
+
+        if algType == 1:
+            forwardSelection(numFeatures, normalizedData, featureSubset, num_instances)
+        elif algType == 2:
+            backwardSelection(numFeatures, normalizedData, featureSubset, num_instances)
+        elif algType == 3:
+           ourAlg(normalizedData, numFeatures, num_instances)
+        else:
+            print("Invalid Entry")
+
+
 
 if __name__ == "__main__":
     main()
+
 
