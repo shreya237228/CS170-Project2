@@ -82,7 +82,7 @@ def backwardSelection(numFeatures, data, featureSubset, totalInstances):
 
 
 def ourAlg(numFeatures, data, totalInstances):
-    print("=== Feature Ranking and Selection ===")
+    print("=== Feature Ranking ===")
     starttime=time.time()
     featureRank = {}
     for feature in range(1, numFeatures + 1):
@@ -105,7 +105,7 @@ def ourAlg(numFeatures, data, totalInstances):
             break
 
     endtime=time.time()
-    print("=== Feature Selection Completed ===")
+    print("=== Search Completed ===")
     print(f"Best feature subset: {sorted(nextFeatures)} | Accuracy: {bestAcc:.2f}%")
     print(f"Time that was taken to finish our own algorithm: {endtime - starttime} seconds")
 '''
