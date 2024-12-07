@@ -3,12 +3,14 @@ import math
 from typing import List
 import time
 from itertools import combinations
+import heapq
 
 def evaluate(features):
     randomAccuracy=random.randint(0, 9999)/ 100.0 
     return randomAccuracy
 
 def forwardSelection(numFeatures, data, featureSubset, totalInstances):
+    starttime=time.time()
     print("=== Forward Selection Algorithm ===")
     features=set()  
     bestFeatures=set()  
@@ -19,17 +21,13 @@ def forwardSelection(numFeatures, data, featureSubset, totalInstances):
     for i in range(1, numFeatures + 1):
         curr = features.copy()  
         thisAccuracy = 0.0
-
         for j in range(1, numFeatures + 1):
             if j in features:  
                 continue
-
             tempFeatures=features.copy()
             tempFeatures.add(j)
             currAccuracy=leaveOneOut(data, tempFeatures, totalInstances)
-
             print(f"Using feature(s) {' '.join(map(str, tempFeatures))} | Accuracy is {currAccuracy:.2f}%")
-
             if currAccuracy> thisAccuracy:  
                 thisAccuracy= currAccuracy
                 curr= tempFeatures
@@ -42,12 +40,15 @@ def forwardSelection(numFeatures, data, featureSubset, totalInstances):
 
         print(f"Feature set {' '.join(map(str, features))} was best, accuracy is {thisAccuracy:.2f}%")
     print("=== Search Completed ===")
+    endtime=time.time()
     if  0.0 < bestAccuracy:
         print(f"Finished search!! The best feature subset is {{{' '.join(map(str, bestFeatures))}}}, "
               f"which has an accuracy of {bestAccuracy:.2f}%")
+    print(f"Time that was taken to finish forward selection: {endtime - starttime} seconds")
 
 def backwardSelection(numFeatures, data, featureSubset, totalInstances):
     print("=== Backward Elimination Search Algorithm ===")
+    starttime=time.time()
     allFeatures = set(range(1, numFeatures + 1))
     featureSet=[]
     bestAccuracy=leaveOneOut(data, featureSet, totalInstances)
@@ -75,12 +76,38 @@ def backwardSelection(numFeatures, data, featureSubset, totalInstances):
         print(f"Best feature set after this iteration: {' '.join(map(str, allFeatures))} "
               f"| Accuracy: {bestFoundAcc:.2f}%")
     print("=== Search Completed ===")
+    endtime=time.time()
     print(f"Best feature subset: {{ {' '.join(map(str, bestSet))} }} | Accuracy: {bestAccuracy:.2f}%")
+    print(f"Time that was taken to finish backward elimination: {endtime - starttime} seconds")
 
-def ourAlg(data, total_features, total_instances):
-    print("=== Working on it ===")
-    pass
 
+def ourAlg(numFeatures, data, totalInstances):
+    print("=== Feature Ranking and Selection ===")
+    starttime=time.time()
+    featureRank = {}
+    for feature in range(1, numFeatures + 1):
+        accuracy = leaveOneOut(data, {feature}, totalInstances)
+        featureRank[feature]=accuracy
+        print(f"Using features: {feature} | Accuracy is {accuracy:.2f}%")
+    
+    rankedFeatures=sorted(featureRank.items(), key=lambda x: x[1], reverse=True)
+    nextFeatures=set()
+    bestAcc=0.0
+    for feature, accuracy in rankedFeatures:
+        nextFeatures.add(feature)
+        currAcc=leaveOneOut(data, nextFeatures, totalInstances)
+        print(f"Using features {sorted(nextFeatures)}: Accuracy = {currAcc:.2f}%")
+        if currAcc>bestAcc:
+            bestAcc= currAcc
+        else:
+            nextFeatures.remove(feature)
+            print(f"(Warning: Accuracy decreased!) Stopping selection.")
+            break
+
+    endtime=time.time()
+    print("=== Feature Selection Completed ===")
+    print(f"Best feature subset: {sorted(nextFeatures)} | Accuracy: {bestAcc:.2f}%")
+    print(f"Time that was taken to finish our own algorithm: {endtime - starttime} seconds")
 '''
 trainingData = []
 classLabels = []
@@ -139,10 +166,6 @@ def normalize_data(dataset, numFeatures, numInstances): #need to find mean and s
             row[featIndex+1]= (row[featIndex+ 1]- means[featIndex])/stDeviation[featIndex]
     return dataset
 
-
-def ourAlg(normalizedData, numFeatures, num_instances):
-    print("Working")
-    pass
 
 def main():
     print("Welcome to Trisha-Shreya's Feature Selection Algorithm.")
@@ -213,7 +236,7 @@ def main():
         elif algType == 2:
             backwardSelection(numFeatures, normalizedData, featureSubset, num_instances)
         elif algType == 3:
-           ourAlg(normalizedData, numFeatures, num_instances)
+           ourAlg(numFeatures, normalizedData, num_instances)
         else:
             print("Invalid Entry")
 
